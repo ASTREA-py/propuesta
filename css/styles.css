@@ -851,9 +851,14 @@ a:focus-visible {
    -------------------------------------------------- */
 
 .catalog-offer {
-  padding-block: clamp(4.5rem, 8vw, 7rem);
+  padding-block: 0;
   background: var(--gradient-astrea);
   color: #ffffff;
+}
+
+.catalog-offer > .shell {
+  padding-top: clamp(4.5rem, 8vw, 7rem);
+  padding-bottom: clamp(4.5rem, 8vw, 7rem);
 }
 
 .catalog-offer .shell {
@@ -1025,7 +1030,12 @@ a:focus-visible {
   }
 
   .catalog-offer {
-    padding-block: 3.6rem;
+    padding-block: 0;
+  }
+
+  .catalog-offer > .shell {
+    padding-top: 3.6rem;
+    padding-bottom: 3.6rem;
   }
 
   .catalog-offer__inner {
@@ -1079,6 +1089,122 @@ a:focus-visible {
   .catalog-offer__body,
   .offer-nav__arrow,
   .offer-nav__dot {
+    transition: none !important;
+  }
+}
+
+
+/* PLAN DE INVERSIÓN
+   Continúa dentro de #catalogo-express, pero corta el gradiente y vuelve a blanco.
+   -------------------------------------------------- */
+
+.catalog-investment {
+  background: #ffffff;
+  color: var(--color-text);
+  padding-block: clamp(3.2rem, 5vw, 4.8rem);
+}
+
+.catalog-investment .shell {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.catalog-investment__title {
+  margin: 0 0 clamp(1.9rem, 3vw, 2.6rem);
+  font-family: var(--font-family);
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.investment-stages {
+  --investment-font: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2.8vw, 2.4rem);
+  align-items: stretch;
+}
+
+.investment-card {
+  min-width: 0;
+  min-height: clamp(9.2rem, 13vw, 11.5rem);
+  padding: clamp(1.35rem, 2.4vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  border: 2px solid transparent;
+  border-radius: 0.65rem;
+  background: transparent;
+
+  font-family: var(--investment-font);
+  text-align: center;
+
+  transition:
+    border-color 280ms var(--ease-ui),
+    box-shadow 280ms var(--ease-ui),
+    transform 280ms var(--ease-ui);
+}
+
+.investment-card.is-active {
+  border-color: var(--color-text);
+  box-shadow: 0 1px 0 rgba(60, 60, 59, 0.03);
+}
+
+.investment-card__title {
+  margin: 0;
+  font: 700 clamp(1.25rem, 1.8vw, 1.55rem)/1.12 var(--investment-font);
+}
+
+.investment-card__detail {
+  margin: 0.18rem 0 0;
+  min-height: 2.45em;
+  font: 400 clamp(0.82rem, 1.05vw, 0.94rem)/1.25 var(--investment-font);
+}
+
+.investment-card__price {
+  margin: 1.25rem 0 0;
+  font: 400 clamp(1.15rem, 1.8vw, 1.55rem)/1.15 var(--investment-font);
+  white-space: nowrap;
+}
+
+.investment-card__price span {
+  font-size: 0.72em;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .catalog-investment {
+    padding-block: 3.25rem;
+  }
+
+  .catalog-investment__title {
+    margin-bottom: 1.65rem;
+  }
+
+  .investment-stages {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .investment-card {
+    min-height: 0;
+    padding: 1.45rem 1.25rem;
+  }
+
+  .investment-card__detail {
+    min-height: 0;
+  }
+
+  .investment-card__price {
+    margin-top: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .investment-card {
     transition: none !important;
   }
 }
