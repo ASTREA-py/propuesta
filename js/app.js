@@ -73,6 +73,7 @@
     next,
     render,
     autoplayDelay = 5500,
+    autoplay = true,
   }) {
     if (!root || !slides.length) return null;
 
@@ -124,7 +125,7 @@
     function start() {
       stop();
 
-      if (paused || document.hidden) return;
+      if (!autoplay || paused || document.hidden) return;
 
       timer = window.setInterval(() => {
         paint(index + 1);
@@ -334,90 +335,62 @@
         );
       }
     },
+    autoplay: false,
   });
 
 
 
   /* --------------------------------------------------
-     PLAN DE INVERSIÓN — recorrido visual de etapas
+     PLAN DE INVERSIÓN
+     El destaque permanece fijo en "Primer mes".
      -------------------------------------------------- */
 
-  const investmentStages = document.querySelector("[data-investment-stages]");
-  const investmentCards = [...document.querySelectorAll("[data-investment-card]")];
-  let investmentIndex = 0;
-  let investmentTimer = null;
-  let investmentPaused = false;
-  const investmentDelay = 3200;
-
-  function renderInvestmentStage(index) {
-    if (!investmentCards.length) return;
-
-    investmentIndex = (index + investmentCards.length) % investmentCards.length;
-
-    investmentCards.forEach((card, cardIndex) => {
-      card.classList.toggle("is-active", cardIndex === investmentIndex);
-    });
-  }
-
-  function stopInvestmentCycle() {
-    if (!investmentTimer) return;
-
-    window.clearInterval(investmentTimer);
-    investmentTimer = null;
-  }
-
-  function startInvestmentCycle() {
-    stopInvestmentCycle();
-
-    if (
-      !investmentCards.length ||
-      investmentPaused ||
-      document.hidden ||
-      reducedMotion.matches
-    ) {
-      return;
-    }
-
-    investmentTimer = window.setInterval(() => {
-      renderInvestmentStage(investmentIndex + 1);
-    }, investmentDelay);
-  }
-
-  investmentStages?.addEventListener("pointerenter", () => {
-    investmentPaused = true;
-    stopInvestmentCycle();
+  document.querySelectorAll("[data-investment-card]").forEach((card, index) => {
+    card.classList.toggle("is-active", index === 0);
   });
-
-  investmentStages?.addEventListener("pointerleave", () => {
-    investmentPaused = false;
-    startInvestmentCycle();
-  });
-
-  investmentStages?.addEventListener("focusin", () => {
-    investmentPaused = true;
-    stopInvestmentCycle();
-  });
-
-  investmentStages?.addEventListener("focusout", (event) => {
-    if (investmentStages.contains(event.relatedTarget)) return;
-
-    investmentPaused = false;
-    startInvestmentCycle();
-  });
-
-  renderInvestmentStage(0);
-  startInvestmentCycle();
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       toolsNavigator?.stop();
       offerNavigator?.stop();
-      stopInvestmentCycle();
     } else {
       toolsNavigator?.start();
       offerNavigator?.start();
-      startInvestmentCycle();
     }
+  });
+
+
+  /* --------------------------------------------------
+     CONTACTO
+     -------------------------------------------------- */
+
+  const contactCta = document.querySelector("[data-contact-cta]");
+  const contactIcon = document.querySelector("[data-contact-icon]");
+  const contactBrand = contactIcon?.closest(".contact__brand");
+
+  /*
+   * TODO — URL FINAL DEL CTA "Quiero mi Catálogo Express®"
+   * Ejemplo:
+   * const CONTACT_CTA_URL = "https://tudominio.com/catalogo-express";
+   */
+  const CONTACT_CTA_URL = "";
+
+  if (contactCta) {
+    if (CONTACT_CTA_URL) {
+      contactCta.href = CONTACT_CTA_URL;
+    } else {
+      contactCta.addEventListener("click", (event) => {
+        event.preventDefault();
+      });
+    }
+  }
+
+  contactIcon?.addEventListener("error", () => {
+    contactBrand?.classList.add("is-missing");
+  });
+
+  contactIcon?.addEventListener("load", () => {
+    contactBrand?.classList.remove("is-missing");
   });
 
   window.addEventListener(
