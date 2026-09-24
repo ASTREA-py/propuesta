@@ -74,12 +74,14 @@
     render,
     autoplayDelay = 5500,
     autoplay = true,
+    autoplayOnce = false,
   }) {
     if (!root || !slides.length) return null;
 
     let index = 0;
     let timer = null;
     let paused = false;
+    let autoplayCompleted = false;
 
     function paint(nextIndex, { animate = true } = {}) {
       index = (nextIndex + slides.length) % slides.length;
@@ -118,14 +120,29 @@
 
     function stop() {
       if (!timer) return;
-      window.clearInterval(timer);
+
+      if (autoplayOnce) {
+        window.clearTimeout(timer);
+      } else {
+        window.clearInterval(timer);
+      }
+
       timer = null;
     }
 
     function start() {
       stop();
 
-      if (!autoplay || paused || document.hidden) return;
+      if (!autoplay || paused || document.hidden || autoplayCompleted) return;
+
+      if (autoplayOnce) {
+        timer = window.setTimeout(() => {
+          timer = null;
+          paint(index + 1);
+          autoplayCompleted = true;
+        }, autoplayDelay);
+        return;
+      }
 
       timer = window.setInterval(() => {
         paint(index + 1);
@@ -134,6 +151,12 @@
 
     function restart() {
       stop();
+
+      if (autoplayOnce) {
+        autoplayCompleted = true;
+        return;
+      }
+
       start();
     }
 
@@ -272,6 +295,7 @@
         toolsImage.alt = slide.imageAlt;
       }
     },
+    autoplayOnce: true,
   });
 
   const toolsImagePreload = new Image();
@@ -364,26 +388,8 @@
      CONTACTO
      -------------------------------------------------- */
 
-  const contactCta = document.querySelector("[data-contact-cta]");
   const contactIcon = document.querySelector("[data-contact-icon]");
   const contactBrand = contactIcon?.closest(".contact__brand");
-
-  /*
-   * TODO — URL FINAL DEL CTA "Quiero mi Catálogo Express®"
-   * Ejemplo:
-   * const CONTACT_CTA_URL = "https://tudominio.com/catalogo-express";
-   */
-  const CONTACT_CTA_URL = "";
-
-  if (contactCta) {
-    if (CONTACT_CTA_URL) {
-      contactCta.href = CONTACT_CTA_URL;
-    } else {
-      contactCta.addEventListener("click", (event) => {
-        event.preventDefault();
-      });
-    }
-  }
 
   contactIcon?.addEventListener("error", () => {
     contactBrand?.classList.add("is-missing");
