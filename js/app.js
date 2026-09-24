@@ -10,40 +10,7 @@
   const ndiveContent = document.querySelector(".ndive__content");
   const ndiveToggle = document.querySelector("[data-ndive-toggle]");
 
-  const toolsCarousel = document.querySelector("[data-tools-carousel]");
-  const toolsTitle = document.querySelector("[data-tools-title]");
-  const toolsByline = document.querySelector("[data-tools-byline]");
-  const toolsDescription = document.querySelector("[data-tools-description]");
-  const toolsImage = document.querySelector("[data-tools-image]");
-  const toolsPrev = document.querySelector("[data-tools-prev]");
-  const toolsNext = document.querySelector("[data-tools-next]");
-  const toolsDots = [...document.querySelectorAll("[data-tools-dot]")];
-
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-  const toolsSlides = [
-    {
-      title: "Catálogo Express®",
-      byline: "by ASTREA",
-      description:
-        "Una herramienta pensada para ayudarte a gestionar tus pedidos y productos, ofreciendo a tus clientes una experiencia de compra más ordenada y fluida.",
-      image: "assets/image3.jpg",
-      imageAlt: "Catálogo Express® de ASTREA",
-    },
-    {
-      title: "Admin ASTREA™",
-      byline: "",
-      description:
-        "Es una web ligera en formato de aplicación pensada para una administración cómoda del Catálogo Express®. Ofrece al comerciante control en tiempo real sobre los productos exhibidos en el Catálogo.",
-      image: "assets/image4.jpg",
-      imageAlt: "Admin ASTREA™",
-    },
-  ];
-
-  let toolsIndex = 0;
-  let toolsTimer = null;
-  let toolsPaused = false;
-  const toolsAutoplayDelay = 5500;
 
   function updateScrollUI() {
     backToTop?.classList.toggle("is-visible", window.scrollY > 320);
@@ -93,76 +60,139 @@
     });
   }
 
-  function renderToolsSlide(index, { animate = true } = {}) {
-    if (!toolsCarousel || !toolsSlides.length) return;
+  /**
+   * Navegador reutilizable de dos o más estados.
+   * Mantiene la lógica de autoplay, flechas, dots, teclado, pausa por foco/hover
+   * y transición. Cada consumidor conserva su propio render.
+   */
+  function createContentNavigator({
+    root,
+    slides,
+    dots,
+    prev,
+    next,
+    render,
+    autoplayDelay = 5500,
+  }) {
+    if (!root || !slides.length) return null;
 
-    toolsIndex = (index + toolsSlides.length) % toolsSlides.length;
-    const slide = toolsSlides[toolsIndex];
+    let index = 0;
+    let timer = null;
+    let paused = false;
 
-    const applyContent = () => {
-      if (toolsTitle) toolsTitle.textContent = slide.title;
-      if (toolsByline) toolsByline.textContent = slide.byline;
-      if (toolsDescription) toolsDescription.textContent = slide.description;
+    function paint(nextIndex, { animate = true } = {}) {
+      index = (nextIndex + slides.length) % slides.length;
+      const slide = slides[index];
 
-      if (toolsImage) {
-        toolsImage.hidden = false;
-        toolsImage.src = slide.image;
-        toolsImage.alt = slide.imageAlt;
+      const apply = () => {
+        render(slide, index);
+
+        dots.forEach((dot, dotIndex) => {
+          const active = dotIndex === index;
+          dot.classList.toggle("is-active", active);
+
+          if (active) {
+            dot.setAttribute("aria-current", "true");
+          } else {
+            dot.removeAttribute("aria-current");
+          }
+        });
+      };
+
+      if (!animate || reducedMotion.matches) {
+        apply();
+        return;
       }
 
-      toolsDots.forEach((dot, dotIndex) => {
-        const active = dotIndex === toolsIndex;
-        dot.classList.toggle("is-active", active);
+      root.classList.add("is-changing");
 
-        if (active) {
-          dot.setAttribute("aria-current", "true");
-        } else {
-          dot.removeAttribute("aria-current");
-        }
+      window.setTimeout(() => {
+        apply();
+
+        requestAnimationFrame(() => {
+          root.classList.remove("is-changing");
+        });
+      }, 170);
+    }
+
+    function stop() {
+      if (!timer) return;
+      window.clearInterval(timer);
+      timer = null;
+    }
+
+    function start() {
+      stop();
+
+      if (paused || document.hidden) return;
+
+      timer = window.setInterval(() => {
+        paint(index + 1);
+      }, autoplayDelay);
+    }
+
+    function restart() {
+      stop();
+      start();
+    }
+
+    function move(direction) {
+      paint(index + direction);
+      restart();
+    }
+
+    prev?.addEventListener("click", () => move(-1));
+    next?.addEventListener("click", () => move(1));
+
+    dots.forEach((dot, dotIndex) => {
+      dot.addEventListener("click", () => {
+        paint(dotIndex);
+        restart();
       });
+    });
+
+    root.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        move(-1);
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        move(1);
+      }
+    });
+
+    root.addEventListener("pointerenter", () => {
+      paused = true;
+      stop();
+    });
+
+    root.addEventListener("pointerleave", () => {
+      paused = false;
+      start();
+    });
+
+    root.addEventListener("focusin", () => {
+      paused = true;
+      stop();
+    });
+
+    root.addEventListener("focusout", (event) => {
+      if (root.contains(event.relatedTarget)) return;
+
+      paused = false;
+      start();
+    });
+
+    paint(0, { animate: false });
+    start();
+
+    return {
+      stop,
+      start,
+      refresh: () => paint(index, { animate: false }),
     };
-
-    if (!animate || reducedMotion.matches) {
-      applyContent();
-      return;
-    }
-
-    toolsCarousel.classList.add("is-changing");
-
-    window.setTimeout(() => {
-      applyContent();
-
-      requestAnimationFrame(() => {
-        toolsCarousel.classList.remove("is-changing");
-      });
-    }, 170);
-  }
-
-  function stopToolsAutoplay() {
-    if (toolsTimer) {
-      window.clearInterval(toolsTimer);
-      toolsTimer = null;
-    }
-  }
-
-  function startToolsAutoplay() {
-    stopToolsAutoplay();
-
-    if (!toolsCarousel || toolsPaused || document.hidden) return;
-
-    toolsTimer = window.setInterval(() => {
-      renderToolsSlide(toolsIndex + 1);
-    }, toolsAutoplayDelay);
-  }
-
-  function restartToolsAutoplay() {
-    stopToolsAutoplay();
-    startToolsAutoplay();
-  }
-
-  function navigateTools(direction) {
-    renderToolsSlide(toolsIndex + direction);
-    restartToolsAutoplay();
   }
 
   backToTop?.addEventListener("click", () => {
@@ -181,61 +211,6 @@
     ndiveContent?.classList.toggle("is-expanded", nextExpanded);
   });
 
-  toolsPrev?.addEventListener("click", () => navigateTools(-1));
-  toolsNext?.addEventListener("click", () => navigateTools(1));
-
-  toolsDots.forEach((dot) => {
-    dot.addEventListener("click", () => {
-      const index = Number(dot.dataset.toolsDot);
-      if (Number.isNaN(index)) return;
-
-      renderToolsSlide(index);
-      restartToolsAutoplay();
-    });
-  });
-
-  toolsCarousel?.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      navigateTools(-1);
-    }
-
-    if (event.key === "ArrowRight") {
-      event.preventDefault();
-      navigateTools(1);
-    }
-  });
-
-  toolsCarousel?.addEventListener("pointerenter", () => {
-    toolsPaused = true;
-    stopToolsAutoplay();
-  });
-
-  toolsCarousel?.addEventListener("pointerleave", () => {
-    toolsPaused = false;
-    startToolsAutoplay();
-  });
-
-  toolsCarousel?.addEventListener("focusin", () => {
-    toolsPaused = true;
-    stopToolsAutoplay();
-  });
-
-  toolsCarousel?.addEventListener("focusout", (event) => {
-    if (toolsCarousel.contains(event.relatedTarget)) return;
-
-    toolsPaused = false;
-    startToolsAutoplay();
-  });
-
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      stopToolsAutoplay();
-    } else {
-      startToolsAutoplay();
-    }
-  });
-
   logo?.addEventListener("error", () => {
     brand?.classList.add("is-missing");
   });
@@ -246,11 +221,130 @@
 
   setupImageFallback(heroImage, ".hero-media");
   setupImageFallback(ndiveImage, ".ndive-media");
+
+  /* --------------------------------------------------
+     HERRAMIENTAS
+     -------------------------------------------------- */
+
+  const toolsCarousel = document.querySelector("[data-tools-carousel]");
+  const toolsTitle = document.querySelector("[data-tools-title]");
+  const toolsByline = document.querySelector("[data-tools-byline]");
+  const toolsDescription = document.querySelector("[data-tools-description]");
+  const toolsImage = document.querySelector("[data-tools-image]");
+  const toolsDots = [...document.querySelectorAll("[data-tools-dot]")];
+
+  const toolsSlides = [
+    {
+      title: "Catálogo Express®",
+      byline: "by ASTREA",
+      description:
+        "Una herramienta pensada para ayudarte a gestionar tus pedidos y productos, ofreciendo a tus clientes una experiencia de compra más ordenada y fluida.",
+      image: "assets/image3.jpg",
+      imageAlt: "Catálogo Express® de ASTREA",
+    },
+    {
+      title: "Admin ASTREA™",
+      byline: "",
+      description:
+        "Es una web ligera en formato de aplicación pensada para una administración cómoda del Catálogo Express®. Ofrece al comerciante control en tiempo real sobre los productos exhibidos en el Catálogo.",
+      image: "assets/image4.jpg",
+      imageAlt: "Admin ASTREA™",
+    },
+  ];
+
   setupImageFallback(toolsImage, ".tools-media");
 
-  // Precarga la segunda imagen para que el primer cambio no dependa de la red.
+  const toolsNavigator = createContentNavigator({
+    root: toolsCarousel,
+    slides: toolsSlides,
+    dots: toolsDots,
+    prev: document.querySelector("[data-tools-prev]"),
+    next: document.querySelector("[data-tools-next]"),
+    render: (slide) => {
+      if (toolsTitle) toolsTitle.textContent = slide.title;
+      if (toolsByline) toolsByline.textContent = slide.byline;
+      if (toolsDescription) toolsDescription.textContent = slide.description;
+
+      if (toolsImage) {
+        toolsImage.hidden = false;
+        toolsImage.src = slide.image;
+        toolsImage.alt = slide.imageAlt;
+      }
+    },
+  });
+
   const toolsImagePreload = new Image();
   toolsImagePreload.src = "assets/image4.jpg";
+
+  /* --------------------------------------------------
+     CATÁLOGO EXPRESS — OFERTA
+     -------------------------------------------------- */
+
+  const offerCarousel = document.querySelector("[data-offer-carousel]");
+  const offerTitle = document.querySelector("[data-offer-title]");
+  const offerList = document.querySelector("[data-offer-list]");
+  const offerDots = [...document.querySelectorAll("[data-offer-dot]")];
+
+  const offerSlides = [
+    {
+      title: "¿Qué obtengo con Catálogo Express®?",
+      items: [
+        "Catálogo digital personalizado con la identidad de tu negocio.",
+        "Acceso a un panel de administración para gestionar tus productos.",
+        "Carga inicial de hasta 50 productos.",
+        "Organización de productos por categorías.",
+        "Buscador y visualización detallada de productos.",
+        "Imágenes y galería para cada producto.",
+        "Carrito para preparar pedidos.",
+        "Envío del pedido directamente al WhatsApp del negocio.",
+        "Catálogo adaptable a celulares, tablets y computadoras.",
+      ],
+    },
+    {
+      title: "¿Cómo pongo en marcha mi Catálogo Express®?",
+      items: [
+        "Confirmás la contratación y el alta inicial del servicio.",
+        "Nos facilitás el nombre, logo y datos de contacto de tu negocio.",
+        "Definimos los colores e identidad visual del catálogo.",
+        "Nos proporcionás el número de WhatsApp que recibirá los pedidos.",
+        "Nos enviás la información e imágenes de los productos para la carga inicial.",
+        "Nos indicás las categorías, precios y stock correspondientes.",
+        "Facilitás el correo que utilizarás para acceder al panel de administración.",
+        "Revisás y aprobás el catálogo antes de su publicación.",
+      ],
+    },
+  ];
+
+  const offerNavigator = createContentNavigator({
+    root: offerCarousel,
+    slides: offerSlides,
+    dots: offerDots,
+    prev: document.querySelector("[data-offer-prev]"),
+    next: document.querySelector("[data-offer-next]"),
+    render: (slide) => {
+      if (offerTitle) offerTitle.textContent = slide.title;
+
+      if (offerList) {
+        offerList.replaceChildren(
+          ...slide.items.map((item) => {
+            const li = document.createElement("li");
+            li.textContent = item;
+            return li;
+          })
+        );
+      }
+    },
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      toolsNavigator?.stop();
+      offerNavigator?.stop();
+    } else {
+      toolsNavigator?.start();
+      offerNavigator?.start();
+    }
+  });
 
   window.addEventListener(
     "scroll",
@@ -261,8 +355,6 @@
     { passive: true }
   );
 
-  renderToolsSlide(0, { animate: false });
   updateScrollUI();
   updateActiveNav();
-  startToolsAutoplay();
 })();
