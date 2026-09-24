@@ -1142,10 +1142,6 @@ a:focus-visible {
   font-family: var(--investment-font);
   text-align: center;
 
-  transition:
-    border-color 280ms var(--ease-ui),
-    box-shadow 280ms var(--ease-ui),
-    transform 280ms var(--ease-ui);
 }
 
 .investment-card.is-active {
@@ -1205,6 +1201,211 @@ a:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .investment-card {
+    transition: none !important;
+  }
+}
+
+
+/* CONTACTO / FOOTER
+   Última sección de la landing.
+   -------------------------------------------------- */
+
+.contact {
+  background: var(--gradient-astrea);
+  color: #ffffff;
+  padding-block: clamp(4.25rem, 7vw, 6.25rem) clamp(3rem, 5vw, 4.5rem);
+}
+
+.contact__content {
+  width: min(100%, 58rem);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.contact__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(100%, 24rem);
+  padding: 0.75rem 2rem;
+
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--color-accent);
+
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(1rem, 1.55vw, 1.22rem);
+  font-weight: 400;
+  line-height: 1.1;
+  text-decoration: none;
+
+  transition:
+    transform 160ms var(--ease-ui),
+    box-shadow 160ms var(--ease-ui);
+}
+
+.contact__cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(60, 60, 59, 0.12);
+}
+
+.contact__cta:active {
+  transform: translateY(0);
+}
+
+.contact__title {
+  max-width: 42rem;
+  margin: clamp(1.9rem, 4vw, 2.8rem) auto 0;
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.contact__divider {
+  width: 100%;
+  height: 1px;
+  margin: clamp(2.8rem, 5vw, 4rem) 0 clamp(2rem, 4vw, 3rem);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.contact__meta {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.75rem, 5vw, 4.7rem);
+}
+
+.contact__brand {
+  width: 3.25rem;
+  height: 3.25rem;
+  display: grid;
+  place-items: center;
+}
+
+.contact__icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.contact__icon-fallback {
+  display: none;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.18);
+  transform: rotate(45deg);
+}
+
+.contact__brand.is-missing .contact__icon {
+  display: none;
+}
+
+.contact__brand.is-missing .contact__icon-fallback {
+  display: block;
+}
+
+.contact__copyright,
+.contact__item {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(0.82rem, 1.15vw, 0.96rem);
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.contact__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.contact__item svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.contact__item svg .contact__svg-dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+.contact__item:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.contact__signature {
+  margin: clamp(2.7rem, 5vw, 4.1rem) 0 0;
+  font-size: clamp(0.76rem, 1.1vw, 0.92rem);
+  line-height: 1.35;
+}
+
+.contact__signature strong {
+  font-weight: 600;
+}
+
+@media (max-width: 680px) {
+  .contact {
+    padding-block: 3.7rem 3rem;
+  }
+
+  .contact__cta {
+    width: min(100%, 24rem);
+    min-width: 0;
+  }
+
+  .contact__title {
+    max-width: 31rem;
+    font-size: 1.05rem;
+  }
+
+  .contact__meta {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.6rem 1.2rem;
+    justify-items: center;
+  }
+
+  .contact__brand {
+    grid-column: 1 / -1;
+  }
+
+  .contact__copyright {
+    grid-column: 1 / -1;
+  }
+
+  .contact__item {
+    white-space: normal;
+  }
+
+  .contact__signature {
+    max-width: 23rem;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 390px) {
+  .contact__meta {
+    grid-template-columns: 1fr;
+  }
+
+  .contact__brand,
+  .contact__copyright {
+    grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact__cta {
     transition: none !important;
   }
 }
