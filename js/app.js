@@ -336,13 +336,87 @@
     },
   });
 
+
+
+  /* --------------------------------------------------
+     PLAN DE INVERSIÓN — recorrido visual de etapas
+     -------------------------------------------------- */
+
+  const investmentStages = document.querySelector("[data-investment-stages]");
+  const investmentCards = [...document.querySelectorAll("[data-investment-card]")];
+  let investmentIndex = 0;
+  let investmentTimer = null;
+  let investmentPaused = false;
+  const investmentDelay = 3200;
+
+  function renderInvestmentStage(index) {
+    if (!investmentCards.length) return;
+
+    investmentIndex = (index + investmentCards.length) % investmentCards.length;
+
+    investmentCards.forEach((card, cardIndex) => {
+      card.classList.toggle("is-active", cardIndex === investmentIndex);
+    });
+  }
+
+  function stopInvestmentCycle() {
+    if (!investmentTimer) return;
+
+    window.clearInterval(investmentTimer);
+    investmentTimer = null;
+  }
+
+  function startInvestmentCycle() {
+    stopInvestmentCycle();
+
+    if (
+      !investmentCards.length ||
+      investmentPaused ||
+      document.hidden ||
+      reducedMotion.matches
+    ) {
+      return;
+    }
+
+    investmentTimer = window.setInterval(() => {
+      renderInvestmentStage(investmentIndex + 1);
+    }, investmentDelay);
+  }
+
+  investmentStages?.addEventListener("pointerenter", () => {
+    investmentPaused = true;
+    stopInvestmentCycle();
+  });
+
+  investmentStages?.addEventListener("pointerleave", () => {
+    investmentPaused = false;
+    startInvestmentCycle();
+  });
+
+  investmentStages?.addEventListener("focusin", () => {
+    investmentPaused = true;
+    stopInvestmentCycle();
+  });
+
+  investmentStages?.addEventListener("focusout", (event) => {
+    if (investmentStages.contains(event.relatedTarget)) return;
+
+    investmentPaused = false;
+    startInvestmentCycle();
+  });
+
+  renderInvestmentStage(0);
+  startInvestmentCycle();
+
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       toolsNavigator?.stop();
       offerNavigator?.stop();
+      stopInvestmentCycle();
     } else {
       toolsNavigator?.start();
       offerNavigator?.start();
+      startInvestmentCycle();
     }
   });
 
